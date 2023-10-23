@@ -61,8 +61,8 @@ class TestStealth(unittest.TestCase):
 
         nonce = int('deadbeef', 16)
         script = bc.mk_stealth_metadata_script(self.ephem_pub, nonce)
-        self.assertEqual(script[6:], 'deadbeef' + self.ephem_pub)
-        
+        self.assertEqual(script[6:], f'deadbeef{self.ephem_pub}')
+
         eph_pub = bc.ephem_pubkey_from_tx_script(script)
         self.assertEqual(eph_pub, self.ephem_pub)
 
@@ -73,19 +73,19 @@ class TestStealth(unittest.TestCase):
         outputs = bc.mk_stealth_tx_outputs(self.addr, value, self.ephem_priv, nonce)
 
         self.assertEqual(outputs[0]['value'], 0)
-        self.assertEqual(outputs[0]['script'], '6a2606deadbeef' + self.ephem_pub)
+        self.assertEqual(outputs[0]['script'], f'6a2606deadbeef{self.ephem_pub}')
         self.assertEqual(outputs[1]['address'], bc.pubkey_to_address(self.pay_pub))
         self.assertEqual(outputs[1]['value'], value)
-        
+
         outputs = bc.mk_stealth_tx_outputs(self.testnet_addr, value, self.ephem_priv, nonce, 'testnet')
-        
+
         self.assertEqual(outputs[0]['value'], 0)
-        self.assertEqual(outputs[0]['script'], '6a2606deadbeef' + self.ephem_pub)
+        self.assertEqual(outputs[0]['script'], f'6a2606deadbeef{self.ephem_pub}')
         self.assertEqual(outputs[1]['address'], bc.pubkey_to_address(self.pay_pub, 111))
         self.assertEqual(outputs[1]['value'], value)
 
         self.assertRaises(Exception, bc.mk_stealth_tx_outputs, self.testnet_addr, value, self.ephem_priv, nonce, 'btc')
-        
+
         self.assertRaises(Exception, bc.mk_stealth_tx_outputs, self.addr, value, self.ephem_priv, nonce, 'testnet')
  
 if __name__ == '__main__':

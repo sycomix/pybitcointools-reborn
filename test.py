@@ -67,7 +67,7 @@ class TestBases(unittest.TestCase):
         for prebase, preval, postbase, postval in data:
             self.assertEqual(changebase(preval, prebase, postbase), postval)
 
-        for i in range(100):
+        for _ in range(100):
             x = random.randrange(1, 9999999999999999)
             frm = random.choice([2, 10, 16, 58, 256])
             to = random.choice([2, 10, 16, 58, 256])
@@ -123,8 +123,10 @@ class TestTransactionSignVerify(unittest.TestCase):
 
     def test_all(self):
         alphabet = "1234567890qwertyuiopasdfghjklzxcvbnm"
-        for i in range(10):
-            msg = ''.join([random.choice(alphabet) for i in range(random.randrange(20, 200))])
+        for _ in range(10):
+            msg = ''.join(
+                [random.choice(alphabet) for _ in range(random.randrange(20, 200))]
+            )
             priv = sha256(str(random.randrange(2**256)))
             pub = privtopub(priv)
             sig = ecdsa_tx_sign(msg, priv)
@@ -167,12 +169,15 @@ class TestTransaction(unittest.TestCase):
     # FIXME: I don't know how to write this as a unit test.
     # What should be asserted?
     def test_all(self):
-        privs = [sha256(str(random.randrange(2**256))) for x in range(4)]
+        privs = [sha256(str(random.randrange(2**256))) for _ in range(4)]
         pubs = [privtopub(priv) for priv in privs]
         addresses = [pubtoaddr(pub) for pub in pubs]
         mscript = mk_multisig_script(pubs[1:], 2, 3)
         msigaddr = p2sh_scriptaddr(mscript)
-        tx = mktx(['01'*32+':1', '23'*32+':2'], [msigaddr+':20202', addresses[0]+':40404'])
+        tx = mktx(
+            ['01' * 32 + ':1', '23' * 32 + ':2'],
+            [f'{msigaddr}:20202', f'{addresses[0]}:40404'],
+        )
         tx1 = sign(tx, 1, privs[0])
 
         sig1 = multisign(tx, 0, mscript, privs[1])
@@ -345,7 +350,7 @@ class TestStartingAddressAndScriptGenerationConsistency(unittest.TestCase):
         print("Starting address and script generation consistency tests")
 
     def test_all(self):
-        for i in range(5):
+        for _ in range(5):
             a = privtoaddr(random_key())
             self.assertEqual(a, script_to_address(address_to_script(a)))
             self.assertEqual(a, script_to_address(address_to_script(a), 0))
@@ -359,7 +364,7 @@ class TestStartingAddressAndScriptGenerationConsistency(unittest.TestCase):
             self.assertEqual(b, script_to_address(address_to_script(b), 0x05))
 
 
-        for i in range(5):
+        for _ in range(5):
             a = privtoaddr(random_key(), 0x6f)
             self.assertEqual(a, script_to_address(address_to_script(a), 111))
             self.assertEqual(a, script_to_address(address_to_script(a), 0x6f))
@@ -427,13 +432,22 @@ class TestScriptVsAddressOutputs(unittest.TestCase):
 
         outputs = [
             [{'address': addr0, 'value': 1000}, {'address': addr1, 'value': 2000}],
-            [{'script': script0, 'value': 1000}, {'address': addr1, 'value': 2000}],
-            [{'address': addr0, 'value': 1000}, {'script': script1, 'value': 2000}],
-            [{'script': script0, 'value': 1000}, {'script': script1, 'value': 2000}],
-            [addr0 + ':1000', addr1 + ':2000'],
-            [script0 + ':1000', addr1 + ':2000'],
-            [addr0 + ':1000', script1 + ':2000'],
-            [script0 + ':1000', script1 + ':2000']
+            [
+                {'script': script0, 'value': 1000},
+                {'address': addr1, 'value': 2000},
+            ],
+            [
+                {'address': addr0, 'value': 1000},
+                {'script': script1, 'value': 2000},
+            ],
+            [
+                {'script': script0, 'value': 1000},
+                {'script': script1, 'value': 2000},
+            ],
+            [f'{addr0}:1000', f'{addr1}:2000'],
+            [f'{script0}:1000', f'{addr1}:2000'],
+            [f'{addr0}:1000', f'{script1}:2000'],
+            [f'{script0}:1000', f'{script1}:2000'],
         ]
 
         for outs in outputs:
